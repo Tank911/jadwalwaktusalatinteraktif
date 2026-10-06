@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Waktu Salat Interaktif</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        arabic: ['Amiri', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card-active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.25));
+            border: 2px solid #10b981;
+        }
+        .dark .glass-card-active {
+            background: linear-gradient(135deg, rgba(6, 95, 70, 0.4), rgba(4, 120, 87, 0.5));
+            border: 2px solid #34d399;
+        }
+        .pattern-bg {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#10b981 0.5px, transparent 0.5px), radial-gradient(#10b981 0.5px, #f8fafc 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-opacity: 0.05;
+        }
+        .dark .pattern-bg {
+            background-color: #0f172a;
+            background-image: radial-gradient(#059669 0.5px, transparent 0.5px), radial-gradient(#059669 0.5px, #0f172a 0.5px);
+        }
+    </style>
+</head>
+<body class="pattern-bg text-slate-800 dark:text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300 font-sans">
+
+    <!-- Header Navbar -->
+    <header class="sticky top-0 z-40 glass-card border-b border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i class="fa-solid font-bold text-xl fa-mosque"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-emerald-700 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">Jadwal Salat</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Waktu Salat & Imsakiyah Interaktif</p>
+                </div>
+            </div>
+
+            <!-- Controls (City Selector, GPS, Audio Toggle, Theme) -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Location Select Dropdown -->
+                <div class="relative">
+                    <select id="citySelect" class="bg-slate-100 dark:bg-slate-800 text-xs sm:text-sm border border-slate-300 dark:border-slate-700 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer pr-7">
+                        <option value="auto">📍 Deteksi Otomatis</option>
+                        <optgroup label="Kota Besar">
+                          <option value="Jakarta,ID">Jakarta</option>
+                          <option value="Surabaya,ID">Surabaya</option>
+                          <option value="Bandung,ID">Bandung</option>
+                          <option value="Medan,ID">Medan</option>
+                          <option value="Semarang,ID">Semarang</option>
+                          <option value="Makassar,ID">Makassar</option>
+                          <option value="Palembang,ID">Palembang</option>
+                          <option value="Yogyakarta,ID">Yogyakarta</option>
+                          <option value="Malang,ID">Malang</option>
+                          <option value="Denpasar,ID">Denpasar</option>
+                          <option value="Banda Aceh,ID">Banda Aceh</option>
+                        </optgroup>
+                        <optgroup label="Jawa Barat">
+                          <option value="Cirebon,ID-JB">Cirebon</option>
+                          <option value="Ciamis,ID-JB">Kabupaten Ciamis</option>
+                          <option value="Banjar,ID-JB">Banjar</option>
+                        </optgroup>
+                        <optgroup label="Jawa Timur">
+                          <option value="Trenggalek,ID-JI">Kabupaten Trenggalek</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Locate GPS Button -->
+                <button id="locateBtn" title="Gunakan Lokasi Presisi GPS" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition">
+                    <i class="fa-solid fa-crosshairs text-sm"></i>
+                </button>
+
+                <!-- Audio Toggle Button -->
+                <button id="audioToggleBtn" title="Toggle Pengingat Adzan" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition">
+                    <i id="audioIcon" class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggleBtn" title="Ganti Tema Mode" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition">
+                    <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow flex flex-col gap-6 w-full">
+
+        <!-- Hero Card (Current Time & Location Info) -->
+        <section class="relative overflow-hidden rounded-2xl glass-card shadow-lg p-6 sm:p-8 bg-gradient-to-br from-emerald-600/90 via-teal-700/90 to-emerald-900/90 text-white border-0">
+            <!-- Decorative Background Element -->
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-white pointer-events-none">
+                <i class="fa-solid fa-star-and-crescent text-[220px]"></i>
+            </div>
+
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <!-- Time & Countdown -->
+                <div class="space-y-3 text-center md:text-left">
+                    <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-emerald-100 border border-white/20">
+                        <i class="fa-solid fa-location-dot text-gold-400"></i>
+                        <span id="currentLocationName">Mendeteksi Lokasi...</span>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <span id="digitalClock" class="text-4xl sm:text-5xl font-extrabold tracking-tight font-mono">00:00:00</span>
+                        <span id="digitalClockSub" class="text-xs sm:text-sm text-emerald-100 mt-1">WIB (Waktu Lokal)</span>
+                    </div>
+
+                    <div class="pt-2">
+                        <div class="text-xs uppercase tracking-wider text-emerald-200 font-semibold">Salat Berikutnya</div>
+                        <div class="flex items-center justify-center md:justify-start space-x-2 mt-1">
+                            <span id="nextPrayerName" class="text-xl sm:text-2xl font-bold text-gold-400">-</span>
+                            <span class="text-slate-300">•</span>
+                            <span id="countdownTimer" class="text-lg sm:text-xl font-semibold font-mono bg-black/20 px-3 py-1 rounded-lg">--:--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Info & Islamic Quote -->
+                <div class="flex flex-col justify-between items-center md:items-end text-center md:text-right space-y-4 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
+                    <div>
+                        <div id="gregorianDate" class="text-base sm:text-lg font-medium text-white"> loading... </div>
+                        <div id="hijriDate" class="text-sm font-semibold text-gold-400 font-arabic tracking-wide mt-1"> loading... </div>
+                    </div>
+
+                    <div class="bg-black/20 backdrop-blur-sm p-3 rounded-xl max-w-sm border border-white/10">
+                        <p class="text-xs italic text-emerald-100">
+                            "Sesungguhnya salat itu adalah kewajiban yang ditentukan waktunya atas orang-orang yang beriman."
+                        </p>
+                        <span class="text-[10px] text-gold-400 block mt-1 font-semibold">(QS. An-Nisa: 103)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prayer Schedule Cards Grid -->
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-600 dark:text-emerald-400"></i>
+                    Jadwal Hari Ini
+                </h2>
+                <span id="scheduleStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-medium">
+                    Terhubung
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4" id="prayerGrid">
+                <!-- Subuh Card -->
+                <div data-prayer="Fajr" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Subuh</span>
+                        <i class="fa-solid fa-cloud-moon text-emerald-600 dark:text-emerald-400 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Fajr" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Fajr</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+
+                <!-- Terbit / Syuruq Card -->
+                <div data-prayer="Sunrise" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Syuruq</span>
+                        <i class="fa-solid fa-sun text-amber-500 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Sunrise" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Terbit</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+
+                <!-- Dzuhur Card -->
+                <div data-prayer="Dhuhr" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Dzuhur</span>
+                        <i class="fa-solid fa-sun-plant-wilt text-amber-600 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Dhuhr" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Dhuhr</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+
+                <!-- Ashar Card -->
+                <div data-prayer="Asr" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Ashar</span>
+                        <i class="fa-solid fa-cloud-sun text-teal-600 dark:text-teal-400 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Asr" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Asr</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+
+                <!-- Maghrib Card -->
+                <div data-prayer="Maghrib" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Maghrib</span>
+                        <i class="fa-solid fa-cloud-sun-rain text-orange-500 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Maghrib" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Maghrib</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+
+                <!-- Isya Card -->
+                <div data-prayer="Isha" class="prayer-card glass-card rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md relative overflow-hidden">
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Isya</span>
+                        <i class="fa-solid fa-moon text-indigo-500 text-lg"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span id="time-Isha" class="text-xl sm:text-2xl font-bold font-mono tracking-tight">--:--</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Isha</span>
+                        <i class="fa-regular fa-bell text-emerald-500 opacity-0 card-bell"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Features Panel -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Audio Sound Test & Settings -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold">Simulasi & Suara Adzan</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Uji coba pengingat suara adzan / beeper saat waktu salat tiba</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <button id="testAdhanBtn" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-play text-[10px]"></i> Play Suara Adzan
+                    </button>
+                    <button id="testBeepBtn" class="text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-volume-low text-[10px]"></i> Test Audio Bip
+                    </button>
+                    <button id="stopAudioBtn" class="text-xs bg-red-100 dark:bg-red-950/50 hover:bg-red-200 text-red-600 dark:text-red-400 font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 hidden">
+                        <i class="fa-solid fa-stop text-[10px]"></i> Hentikan Suara
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calculation Method Info -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                        <i class="fa-solid fa-compass text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold">Metode Perhitungan</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Kemenag RI / SIHAT Kemenag (Angle 20°/18°)</p>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                    <span>Koordinat Terdeteksi:</span>
+                    <span id="coordDisplay" class="font-mono font-medium text-slate-700 dark:text-slate-300">Lat: --, Lng: --</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t border-slate-200 dark:border-slate-800 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 Jadwal Salat Interaktif. Data disinkronisasi dari Aladhan API & Kemenag.</p>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center text-emerald-600 dark:text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1.5"></span>
+                    Sistem Aktif
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Adhan / Prayer Time Popup Modal -->
+    <div id="adhanModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 px-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-emerald-500/30 transform scale-95 transition-transform duration-300" id="adhanModalCard">
+            <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl animate-bounce">
+                <i class="fa-solid fa-mosque"></i>
+            </div>
+            <h3 class="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Waktu Salat Tiba</h3>
+            <h2 id="modalPrayerName" class="text-2xl font-black text-slate-800 dark:text-slate-100 my-1">Maghrib</h2>
+            <p id="modalPrayerMessage" class="text-xs text-slate-500 dark:text-slate-400 mb-6">Telah memasuki waktu salat Maghrib untuk wilayah Anda. Mari tunaikan ibadah salat tepat waktu.</p>
+            
+            <button id="closeModalBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/30">
+                Tutup & Matikan Suara
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // State Management
+        const state = {
+            latitude: -6.2088, // Default Jakarta
+            longitude: 106.8456,
+            locationName: "Jakarta, Indonesia",
+            prayerTimes: null,
+            nextPrayer: null,
+            audioEnabled: true,
+            isDark: false,
+            activeAdhanAudio: null,
+            lastNotifiedPrayer: null
+        };
+
+        // Prayer names in Indonesian
+        const PRAYER_NAMES = {
+            'Fajr': 'Subuh',
+            'Sunrise': 'Syuruq',
+            'Dhuhr': 'Dzuhur',
+            'Asr': 'Ashar',
+            'Maghrib': 'Maghrib',
+            'Isha': 'Isya'
+        };
+
+        // DOM Elements
+        const citySelect = document.getElementById('citySelect');
+        const locateBtn = document.getElementById('locateBtn');
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const audioToggleBtn = document.getElementById('audioToggleBtn');
+        const audioIcon = document.getElementById('audioIcon');
+        const digitalClock = document.getElementById('digitalClock');
+        const currentLocationName = document.getElementById('currentLocationName');
+        const gregorianDateEl = document.getElementById('gregorianDate');
+        const hijriDateEl = document.getElementById('hijriDate');
+        const nextPrayerNameEl = document.getElementById('nextPrayerName');
+        const countdownTimerEl = document.getElementById('countdownTimer');
+        const coordDisplay = document.getElementById('coordDisplay');
+        const testAdhanBtn = document.getElementById('testAdhanBtn');
+        const testBeepBtn = document.getElementById('testBeepBtn');
+        const stopAudioBtn = document.getElementById('stopAudioBtn');
+        const adhanModal = document.getElementById('adhanModal');
+        const adhanModalCard = document.getElementById('adhanModalCard');
+        const modalPrayerName = document.getElementById('modalPrayerName');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // City Coordinates Map
+        const CITIES = {
+            'Jakarta,ID': { lat: -6.2088, lng: 106.8456, name: 'Jakarta' },
+            'Surabaya,ID': { lat: -7.2575, lng: 112.7521, name: 'Surabaya' },
+            'Bandung,ID': { lat: -6.9175, lng: 107.6191, name: 'Bandung' },
+            'Medan,ID': { lat: 3.5952, lng: 98.6722, name: 'Medan' },
+            'Semarang,ID': { lat: -6.9667, lng: 110.4167, name: 'Semarang' },
+            'Makassar,ID': { lat: -5.1477, lng: 119.4327, name: 'Makassar' },
+            'Palembang,ID': { lat: -2.9761, lng: 104.7754, name: 'Palembang' },
+            'Yogyakarta,ID': { lat: -7.7956, lng: 110.3695, name: 'Yogyakarta' },
+            'Malang,ID': { lat: -7.9666, lng: 112.6326, name: 'Malang' },
+            'Denpasar,ID': { lat: -8.6705, lng: 115.2126, name: 'Denpasar' },
+            'Banda Aceh,ID': { lat: 5.5483, lng: 95.3238, name: 'Banda Aceh' },
+            'Cirebon,ID-JB': { lat: -6.709448, lng: 108.560639, name: 'Cirebon' },
+            'Ciamis,ID-JB': { lat: -7.326079, lng: 108.353123, name: 'Kabupaten Ciamis' },
+            'Banjar,ID-JB': { lat: -7.367995, lng: 108.541438, name: 'Banjar' }
+            'Trenggalek,ID-JI': { lat: -8.048630, lng:111.709179, name: 'Kabupaten Trenggalek' }
+        };
+
+        // --- Init Function ---
+        window.onload = function() {
+            initTheme();
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Try auto geolocation or fallback to stored/default
+            if (navigator.geolocation) {
+                getUserLocation();
+            } else {
+                fetchPrayerTimes(state.latitude, state.longitude, state.locationName);
+            }
+
+            setupEventListeners();
+        };
+
+        // --- Event Listeners Setup ---
+        function setupEventListeners() {
+            // City selection change
+            citySelect.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val === 'auto') {
+                    getUserLocation();
+                } else if (CITIES[val]) {
+                    const city = CITIES[val];
+                    state.latitude = city.lat;
+                    state.longitude = city.lng;
+                    state.locationName = `${city.name}, Indonesia`;
+                    fetchPrayerTimes(city.lat, city.lng, state.locationName);
+                }
+            });
+
+            // Geolocation Button
+            locateBtn.addEventListener('click', () => {
+                citySelect.value = 'auto';
+                getUserLocation();
+            });
+
+            // Dark Mode Toggle
+            themeToggleBtn.addEventListener('click', toggleTheme);
+
+            // Audio Toggle
+            audioToggleBtn.addEventListener('click', () => {
+                state.audioEnabled = !state.audioEnabled;
+                if (state.audioEnabled) {
+                    audioIcon.className = "fa-solid fa-volume-high text-sm";
+                    audioToggleBtn.classList.remove('opacity-50');
+                } else {
+                    audioIcon.className = "fa-solid fa-volume-xmark text-sm";
+                    audioToggleBtn.classList.add('opacity-50');
+                    stopAllAudio();
+                }
+            });
+
+            // Test Buttons
+            testAdhanBtn.addEventListener('click', () => {
+                triggerAdhanNotification('Maghrib (Simulasi)');
+            });
+
+            testBeepBtn.addEventListener('click', () => {
+                playBeepSound();
+            });
+
+            stopAudioBtn.addEventListener('click', stopAllAudio);
+
+            closeModalBtn.addEventListener('click', closeAdhanModal);
+        }
+
+        // --- Dark/Light Theme Handler ---
+        function initTheme() {
+            const isDarkSaved = localStorage.getItem('theme') === 'dark' || 
+                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDarkSaved) {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = "fa-solid fa-sun text-sm";
+                state.isDark = true;
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-moon text-sm";
+                state.isDark = false;
+            }
+        }
+
+        function toggleTheme() {
+            state.isDark = !state.isDark;
+            if (state.isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                themeIcon.className = "fa-solid fa-sun text-sm";
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                themeIcon.className = "fa-solid fa-moon text-sm";
+            }
+        }
+
+        // --- Geolocation ---
+        function getUserLocation() {
+            currentLocationName.textContent = "Mencari lokasi GPS...";
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        state.latitude = position.coords.latitude;
+                        state.longitude = position.coords.longitude;
+                        state.locationName = "Lokasi Saya (GPS)";
+                        fetchPrayerTimes(state.latitude, state.longitude, state.locationName);
+                        reverseGeocode(state.latitude, state.longitude);
+                    },
+                    (error) => {
+                        console.warn("GPS failed/denied, falling back to default:", error);
+                        state.locationName = "Jakarta, Indonesia (Default)";
+                        fetchPrayerTimes(state.latitude, state.longitude, state.locationName);
+                    },
+                    { timeout: 10000 }
+                );
+            }
+        }
+
+        // Optional Reverse Geocoding to get City Name from Lat/Lng
+        async function reverseGeocode(lat, lng) {
+            try {
+                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`);
+                const data = await res.json();
+                if (data.city || data.locality) {
+                    state.locationName = `${data.city || data.locality}, ${data.countryName || 'Indonesia'}`;
+                    currentLocationName.textContent = state.locationName;
+                }
+            } catch (e) {
+                console.log("Geocoding fetch info fallback used.");
+            }
+        }
+
+        // --- Fetch Prayer Times from Aladhan API ---
+        async function fetchPrayerTimes(lat, lng, locationLabel) {
+            currentLocationName.textContent = locationLabel;
+            coordDisplay.textContent = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            // Method 20 = Kemenag Indonesia / Malaysia / Singapore
+            const url = `https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=${lat}&longitude=${lng}&method=20`;
+
+            try {
+                document.getElementById('scheduleStatusBadge').textContent = "Memuat...";
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.code === 200 && result.data) {
+                    state.prayerTimes = result.data.timings;
+                    updatePrayerCards(result.data.timings);
+                    updateHijriDate(result.data.date.hijri);
+                    document.getElementById('scheduleStatusBadge').textContent = "Terhubung (SIHAT/Kemenag)";
+                    calculateNextPrayer();
+                } else {
+                    throw new Error("Invalid response");
+                }
+            } catch (err) {
+                console.error("Gagal mengambil data dari API Aladhan:", err);
+                document.getElementById('scheduleStatusBadge').textContent = "Offline / Mode Kalkulasi";
+                fallbackPrayerCalculation(lat, lng);
+            }
+        }
+
+        // Fallback local prayer calculation in case API is offline
+        function fallbackPrayerCalculation(lat, lng) {
+            // Standard static fallback schedule for demo/offline resilience
+            const fallbackTimes = {
+                'Fajr': '04:32',
+                'Sunrise': '05:46',
+                'Dhuhr': '11:53',
+                'Asr': '15:10',
+                'Maghrib': '17:56',
+                'Isha': '19:06'
+            };
+            state.prayerTimes = fallbackTimes;
+            updatePrayerCards(fallbackTimes);
+            calculateNextPrayer();
+        }
+
+        // --- UI Updates ---
+        function updatePrayerCards(timings) {
+            const prayers = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+            prayers.forEach(p => {
+                const el = document.getElementById(`time-${p}`);
+                if (el && timings[p]) {
+                    // Clean format "04:32 (WIB)" -> "04:32"
+                    const cleanTime = timings[p].split(' ')[0];
+                    el.textContent = cleanTime;
+                }
+            });
+        }
+
+        function updateHijriDate(hijri) {
+            if (!hijri) return;
+            // Format Hijri Date
+            const dayName = hijri.weekday.id || hijri.weekday.en;
+            const monthName = hijri.month.id || hijri.month.en;
+            hijriDateEl.textContent = `${hijri.day} ${monthName} ${hijri.year} H`;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            
+            // Format Gregorian Date in Indonesian
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            gregorianDateEl.textContent = now.toLocaleDateString('id-ID', options);
+
+            // Digital Clock
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const secs = String(now.getSeconds()).padStart(2, '0');
+            digitalClock.textContent = `${hrs}:${mins}:${secs}`;
+
+            // Recalculate countdown & current active state
+            if (state.prayerTimes) {
+                calculateNextPrayer();
+            }
+        }
+
+        function calculateNextPrayer() {
+            if (!state.prayerTimes) return;
+
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const currentSeconds = now.getSeconds();
+
+            const prayerList = [
+                { key: 'Fajr', name: 'Subuh' },
+                { key: 'Sunrise', name: 'Syuruq' },
+                { key: 'Dhuhr', name: 'Dzuhur' },
+                { key: 'Asr', name: 'Ashar' },
+                { key: 'Maghrib', name: 'Maghrib' },
+                { key: 'Isha', name: 'Isya' }
+            ];
+
+            let nextP = null;
+            let activeP = null;
+
+            for (let i = 0; i < prayerList.length; i++) {
+                const p = prayerList[i];
+                const timeStr = state.prayerTimes[p.key].split(' ')[0];
+                const [h, m] = timeStr.split(':').map(Number);
+                const pMinutes = h * 60 + m;
+
+                if (pMinutes > currentMinutes) {
+                    nextP = { ...p, minutes: pMinutes, timeStr };
+                    activeP = prayerList[(i - 1 + prayerList.length) % prayerList.length];
+                    break;
+                }
+            }
+
+            // If past Isha, next prayer is Fajr tomorrow
+            if (!nextP) {
+                const fajrStr = state.prayerTimes['Fajr'].split(' ')[0];
+                const [h, m] = fajrStr.split(':').map(Number);
+                nextP = { ...prayerList[0], minutes: (h * 60 + m) + (24 * 60), timeStr: fajrStr };
+                activeP = prayerList[prayerList.length - 1]; // Isha
+            }
+
+            state.nextPrayer = nextP;
+
+            // Highlight Cards UI
+            highlightPrayerCards(nextP.key);
+
+            // Update Next Prayer Text
+            nextPrayerNameEl.textContent = nextP.name;
+
+            // Calculate Countdown
+            const diffMinutes = nextP.minutes - currentMinutes - 1;
+            const diffSeconds = 60 - currentSeconds;
+
+            let remainingSecs = (diffMinutes * 60) + diffSeconds;
+            if (remainingSecs < 0) remainingSecs = 0;
+
+            const hoursLeft = Math.floor(remainingSecs / 3600);
+            const minsLeft = Math.floor((remainingSecs % 3600) / 60);
+            const secsLeft = remainingSecs % 60;
+
+            countdownTimerEl.textContent = 
+                `${String(hoursLeft).padStart(2, '0')}:${String(minsLeft).padStart(2, '0')}:${String(secsLeft).padStart(2, '0')}`;
+
+            // Trigger notification when countdown hits exactly 0
+            if (remainingSecs === 0 && state.lastNotifiedPrayer !== nextP.key) {
+                state.lastNotifiedPrayer = nextP.key;
+                triggerAdhanNotification(nextP.name);
+            }
+        }
+
+        function highlightPrayerCards(nextPrayerKey) {
+            const cards = document.querySelectorAll('.prayer-card');
+            cards.forEach(card => {
+                const key = card.getAttribute('data-prayer');
+                const bellIcon = card.querySelector('.card-bell');
+
+                if (key === nextPrayerKey) {
+                    card.classList.add('glass-card-active');
+                    if (bellIcon) bellIcon.classList.remove('opacity-0');
+                } else {
+                    card.classList.remove('glass-card-active');
+                    if (bellIcon) bellIcon.classList.add('opacity-0');
+                }
+            });
+        }
+
+        // --- Web Audio Synthesizer (Zero External File Dependency) ---
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Play Beep Sound for Alerts
+        function playBeepSound() {
+            if (!state.audioEnabled) return;
+            const ctx = getAudioContext();
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.8);
+        }
+
+        // Synthetic Harmonized Tone Sequence for Adhan Simulation
+        function playSyntheticAdhan() {
+            if (!state.audioEnabled) return;
+            stopAllAudio();
+
+            const ctx = getAudioContext();
+            stopAudioBtn.classList.remove('hidden');
+
+            const notes = [
+                { f: 293.66, d: 1.2 }, // D4
+                { f: 329.63, d: 1.0 }, // E4
+                { f: 349.23, d: 1.5 }, // F4
+                { f: 440.00, d: 2.0 }, // A4
+                { f: 392.00, d: 1.2 }, // G4
+                { f: 349.23, d: 2.5 }  // F4
+            ];
+
+            let startTime = ctx.currentTime + 0.1;
+
+            notes.forEach((note) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(note.f, startTime);
+
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.2, startTime + 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + note.d);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(startTime);
+                osc.stop(startTime + note.d);
+
+                startTime += note.d * 0.8;
+            });
+
+            // Store active timeout
+            state.activeAdhanAudio = setTimeout(() => {
+                stopAudioBtn.classList.add('hidden');
+            }, (startTime - ctx.currentTime) * 1000);
+        }
+
+        function stopAllAudio() {
+            if (state.activeAdhanAudio) {
+                clearTimeout(state.activeAdhanAudio);
+                state.activeAdhanAudio = null;
+            }
+            if (audioCtx) {
+                audioCtx.suspend();
+            }
+            stopAudioBtn.classList.add('hidden');
+        }
+
+        // --- Adhan Trigger & Popup Modal ---
+        function triggerAdhanNotification(prayerName) {
+            modalPrayerName.textContent = prayerName;
+            adhanModal.classList.remove('opacity-0', 'pointer-events-none');
+            adhanModalCard.classList.remove('scale-95');
+            adhanModalCard.classList.add('scale-100');
+
+            if (state.audioEnabled) {
+                playBeepSound();
+                setTimeout(() => {
+                    playSyntheticAdhan();
+                }, 800);
+            }
+        }
+
+        function closeAdhanModal() {
+            adhanModalCard.classList.remove('scale-100');
+            adhanModalCard.classList.add('scale-95');
+            adhanModal.classList.add('opacity-0', 'pointer-events-none');
+            stopAllAudio();
+        }
+    </script>
+</body>
+</html>
